@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
 // Other express packages to use: bcrypt (for password hashing), express-validator (for validating emails etc)
 
@@ -8,6 +8,14 @@ const db = require('./queries.js');
 
 // Use json parser for incoming/outgoing json http
 app.use(express.json());
+
+// Allow CORS
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Acces-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  next();
+});
 
 // Set response headers to allow CORS (different server/client urls)
 app.use((req, res, next) => {
@@ -28,7 +36,7 @@ app.get('/ingredientTypes', db.getIngredientTypes);
 
 // Recipe routes
 app.post('/recipes', db.addRecipe);
-app.get('/recipes', db.getRecipes);
+app.get('/recipes', db.getRecipesList);
 
 // Shopping list routes
 app.post('/shoppinglist', db.buildShoppingList);

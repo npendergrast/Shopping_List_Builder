@@ -145,19 +145,34 @@ async function addRecipe(req, res) {
   }
 }
 
-const getRecipes = (req, res) => {
+// const getRecipes = (req, res) => {
+//   pool.query(
+//     `SELECT recipes.recipe_name, recipes.instructions, recipe_ingredients.quantity, ingredients.ingredient, recipes.is_vegetarian
+//     FROM recipes
+//     INNER JOIN recipe_ingredients
+//     ON recipes.id = recipe_ingredients.recipe_id
+//     INNER JOIN ingredients
+//     ON recipe_ingredients.ingredient_id = ingredients.id`,
+//     (err, results) => {
+//       if (err) {
+//         res.send('Recipes could not be found');
+//         throw err;
+//       }
+//       res.status(201).json(results.rows);
+//     }
+//   );
+// };
+
+const getRecipesList = (req, res) => {
   pool.query(
-    `SELECT recipes.recipe_name, recipes.instructions, recipe_ingredients.quantity, ingredients.ingredient, recipes.is_vegetarian
-    FROM recipes
-    INNER JOIN recipe_ingredients
-    ON recipes.id = recipe_ingredients.recipe_id
-    INNER JOIN ingredients
-    ON recipe_ingredients.ingredient_id = ingredients.id`,
+    `SELECT recipes.id, recipes.recipe_name, recipes.is_vegetarian
+    FROM recipes`,
     (err, results) => {
       if (err) {
         res.send('Recipes could not be found');
         throw err;
       }
+      console.log(results.rows);
       res.status(201).json(results.rows);
     }
   );
@@ -201,6 +216,6 @@ module.exports = {
   getIngredientTypes,
   deleteIngredient,
   addRecipe,
-  getRecipes,
+  getRecipesList,
   buildShoppingList,
 };
