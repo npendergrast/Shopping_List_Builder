@@ -1,20 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import MenuListComponent from '../MenuListComponent/MenuListComponent';
-import { getRecipes } from '../ApiCalls/apiCalls';
+import ButtonComponent from '../ButtonComponent/ButtonComponent';
+import { getRecipes, buildShoppingList } from '../ApiCalls/apiCalls';
 
 const BuildShoppingListComponent = () => {
-  const [checked, setChecked] = React.useState([1]);
+  const [checked, setChecked] = React.useState([]);
   const [list, setList] = useState([]);
+  const [clicked, setClicked] = useState(false);
 
   useEffect(() => {
-    let mounted = true;
     getRecipes().then((items) => {
-      if (mounted) {
-        setList(items);
-      }
+      setList(items);
     });
-    return () => (mounted = false);
   }, []);
+
+  useEffect(() => {
+    if (clicked) {
+      buildShoppingList(checked).then((result) => console.log(result));
+      setClicked(false);
+    }
+  }, [clicked, checked]);
 
   const handleToggle = (value) => () => {
     const currentIndex = checked.indexOf(value);
@@ -23,17 +28,20 @@ const BuildShoppingListComponent = () => {
     if (currentIndex === -1) {
       newChecked.push(value);
     } else {
-      newChecked.splice(currentIndex, 1);
+      newChecked.splice(currentIndex, true);
     }
     setChecked(newChecked);
   };
 
   return (
-    <MenuListComponent
-      list={list}
-      onChange={(value) => handleToggle(value)}
-      checked={checked}
-    />
+    <div>
+      <MenuListComponent
+        list={list}
+        onChange={(value) => handleToggle(value)}
+        checked={checked}
+      />
+      <ButtonComponent onClick={() => setClicked(true)} />
+    </div>
   );
 };
 

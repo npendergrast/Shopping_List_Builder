@@ -172,13 +172,14 @@ const getRecipesList = (req, res) => {
         res.send('Recipes could not be found');
         throw err;
       }
-      console.log(results.rows);
       res.status(201).json(results.rows);
     }
   );
 };
 
 async function buildShoppingList(req, res) {
+  console.log(req);
+  console.log(req.body);
   recipeArray = req.body;
   let shoppinglistArray = [];
   for (const recipe of recipeArray) {
@@ -191,7 +192,7 @@ async function buildShoppingList(req, res) {
     ON recipe_ingredients.ingredient_id = ingredients.id
     INNER JOIN ingredient_types
     ON ingredients.type_id = ingredient_types.id
-    WHERE recipes.recipe_name = $1`,
+    WHERE recipes.id = $1`,
       [recipe]
     );
     for (const result of results.rows) {
