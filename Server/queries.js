@@ -1,13 +1,4 @@
-// node-postgress setup
-const { Pool } = require('pg');
-const Keys = require('./keys');
-const pool = new Pool({
-  user: process.env.user || Keys.user,
-  host: process.env.host || Keys.host,
-  database: process.env.database || Keys.database,
-  password: process.env.password || Keys.password,
-  port: process.env.dbPort || '5433',
-});
+const { pool } = require('./db/index');
 
 // Find value in array (either case sensitive or not)
 const findInArray = (targetArray, checkValue, caseSensitive) => {
@@ -18,8 +9,20 @@ const findInArray = (targetArray, checkValue, caseSensitive) => {
   return targetArray.includes(checkValue);
 };
 
+//
+// const addUser = (req, res) => {
+//   const { userName, password, first, last } = req.body;
+//   console.log(userName);
+//   pool.query(
+//     `INSERT INTO users(id, user_name, password, name_first, name_last)
+//   VALUES(uuid_generate_v4(), $1, $2, $3, $4)`,
+//     [userName, password, first, last]
+//   );
+// };
+
 // Provide an array of ingredient objects
 async function addIngredient(req, res) {
+  console.log(req.userID);
   const newIngredientArr = req.body;
   let queryResults = [];
   for (const newIngredient of newIngredientArr) {
@@ -31,7 +34,7 @@ async function addIngredient(req, res) {
       );
       queryResults.push(newIngredient.ingredient);
     } catch (err) {
-      //consolse.log(err);
+      consolse.log(err);
     }
   }
   res
@@ -178,13 +181,13 @@ const getRecipesList = (req, res) => {
 };
 
 async function buildShoppingList(req, res) {
-  console.log(req);
-  console.log(req.body);
   recipeArray = req.body;
-  let shoppinglistArray = [];
+  let includeArray = [];
+  let excludeArray = [];
+  let retrunArray = [];
   for (const recipe of recipeArray) {
     const results = await pool.query(
-      `SELECT recipe_ingredients.quantity, ingredients.ingredient, ingredient_types.type
+      `SELECT recipe_ingredients.quantity, ingredients.ingredient, ingredients.include, ingredient_types.type
     FROM recipes
     JOIN recipe_ingredients
     ON recipes.id = recipe_ingredients.recipe_id
@@ -196,18 +199,29 @@ async function buildShoppingList(req, res) {
       [recipe]
     );
     for (const result of results.rows) {
-      let elementIndex = shoppinglistArray.findIndex(
+      let elementIndex = includeArray.findIndex(
+        (e) => e.ingredient === result.ingredient
+      );
+      let elementIndex2 = excludeArray.findIndex(
         (e) => e.ingredient === result.ingredient
       );
       if (elementIndex > -1) {
-        shoppinglistArray[elementIndex].quantity =
-          shoppinglistArray[elementIndex].quantity + result.quantity;
+        includeArray[elementIndex].quantity =
+          includeArray[elementIndex].quantity + result.quantity;
+      } else if (elementIndex2 > -1) {
+        excludeArray[elementIndex2].quantity =
+          excludeArray[elementIndex2].quantity + result.quantity;
       } else {
-        shoppinglistArray.push(result);
+        if (result.include) {
+          includeArray.push(result);
+        } else {
+          excludeArray.push(result);
+        }
       }
     }
   }
-  await res.status(200).json(shoppinglistArray);
+  retrunArray.push(includeArray, excludeArray);
+  await res.status(200).json(retrunArray);
 }
 
 module.exports = {
@@ -219,4 +233,5 @@ module.exports = {
   addRecipe,
   getRecipesList,
   buildShoppingList,
+  // addUser,
 };

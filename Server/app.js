@@ -4,12 +4,20 @@ const PORT = process.env.PORT || 5000;
 
 // Other express packages to use: bcrypt (for password hashing), express-validator (for validating emails etc)
 
-const db = require('./queries.js');
+const controller = require('./queries.js');
+const auth = require('./controllers/auth');
+const isAuth = require('./middleware/is-auth');
 
 // Use json parser for incoming/outgoing json http
 app.use(express.json());
+// Use urlencoded only if using html form data
+app.use(
+  express.urlencoded({
+    extended: true,
+  })
+);
 
-// Allow CORS
+// Set response headers to allow CORS (different server/client urls)
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader(
@@ -27,31 +35,26 @@ app.use((req, res, next) => {
   }
 });
 
-// Set response headers to allow CORS (different server/client urls)
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*'); // Could change '*' to specific url e.g. netlify address
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  next();
-});
-
-//app.use(express.urlencoded()); //(only if using html form data)
-
 // Ingredient routes
-app.post('/ingredients', db.addIngredient);
-app.put('/ingredients', db.editIngredient);
-app.get('/ingredients', db.getIngredients);
-app.delete('/ingredients', db.deleteIngredient);
-app.get('/ingredientTypes', db.getIngredientTypes);
+app.post('/ingredients', isAuth, controller.addIngredient);
+app.put('/ingredients', controller.editIngredient);
+app.get('/ingredients', controller.getIngredients);
+app.delete('/ingredients', controller.deleteIngredient);
+app.get('/ingredientTypes', controller.getIngredientTypes);
 
 // Recipe routes
-app.post('/recipes', db.addRecipe);
-app.get('/recipes', db.getRecipesList);
+app.post('/recipes', controller.addRecipe);
+app.get('/recipes', controller.getRecipesList);
 
 // Shopping list routes
-app.post('/shoppinglist', db.buildShoppingList);
+app.post('/shoppinglist', controller.buildShoppingList);
 
-app.use((req, res, next) => {
+// Auth routes
+// app.post('/user', controller.addUser);
+app.post('/login', auth.loginUser);
+
+// 404 Response
+app.use((req, res) => {
   res.status(404).send('Page Not Found');
 });
 

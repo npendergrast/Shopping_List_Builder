@@ -9,10 +9,19 @@ export const getRecipes = () => {
 };
 
 export const buildShoppingList = (listIDs) => {
-  console.log(JSON.stringify(listIDs));
   return fetch('http://localhost:5000/shoppinglist/', {
     method: 'POST',
     body: JSON.stringify(listIDs),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  }).then((data) => data.json());
+};
+
+export const userLogin = (credentials) => {
+  return fetch('http://localhost:5000/login', {
+    method: 'POST',
+    body: JSON.stringify(credentials),
     headers: {
       'Content-Type': 'application/json',
     },
