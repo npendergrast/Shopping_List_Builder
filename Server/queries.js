@@ -22,7 +22,6 @@ const findInArray = (targetArray, checkValue, caseSensitive) => {
 
 // Provide an array of ingredient objects
 async function addIngredient(req, res) {
-  console.log(req.userID);
   const newIngredientArr = req.body;
   let queryResults = [];
   for (const newIngredient of newIngredientArr) {
@@ -76,7 +75,7 @@ async function editIngredient(req, res) {
 
 const getIngredients = (req, res) => {
   pool.query(
-    `SELECT ingredients.ingredient, ingredients.id, ingredient_types.type 
+    `SELECT ingredients.ingredient, ingredient_types.type, ingredients.include, ingredients.id
     FROM ingredients 
     INNER JOIN ingredient_types 
     ON ingredients.type_id = ingredient_types.id`,
@@ -91,16 +90,24 @@ const getIngredients = (req, res) => {
 };
 
 const getIngredientTypes = (req, res) => {
-  pool.query(`SELECT type FROM ingredient_types`, (err, results) => {
+  pool.query(`SELECT type, id FROM ingredient_types`, (err, results) => {
     if (err) {
       res.send('Ingredient types list could not be found');
       throw err;
     }
-    let typeArray = [];
-    const selectedRows = results.rows.forEach((element) => {
-      typeArray.push(element.type);
+    const sortedTypes = [...results.rows].sort(function (a, b) {
+      var x = a.type.toLowerCase();
+      var y = b.type.toLowerCase();
+      if (x < y) {
+        return -1;
+      }
+      if (x > y) {
+        return 1;
+      }
+      return 0;
     });
-    res.status(200).send(typeArray);
+
+    res.status(200).send(sortedTypes);
   });
 };
 

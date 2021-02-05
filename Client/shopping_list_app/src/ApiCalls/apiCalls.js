@@ -4,6 +4,12 @@ export const getIngredients = () => {
   );
 };
 
+export const getIngredientTypes = () => {
+  return fetch('http://localhost:5000/ingredienttypes').then((data) =>
+    data.json()
+  );
+};
+
 export const getRecipes = () => {
   return fetch('http://localhost:5000/recipes/').then((data) => data.json());
 };

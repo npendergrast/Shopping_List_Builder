@@ -40,7 +40,7 @@ app.post('/ingredients', isAuth, controller.addIngredient);
 app.put('/ingredients', controller.editIngredient);
 app.get('/ingredients', controller.getIngredients);
 app.delete('/ingredients', controller.deleteIngredient);
-app.get('/ingredientTypes', controller.getIngredientTypes);
+app.get('/ingredienttypes', controller.getIngredientTypes);
 
 // Recipe routes
 app.post('/recipes', controller.addRecipe);

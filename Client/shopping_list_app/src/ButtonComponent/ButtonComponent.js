@@ -16,7 +16,7 @@ export default function ContainedButtons(props) {
   return (
     <div className={classes.root}>
       <Button variant="contained" color="primary" onClick={props.onClick}>
-        Build List
+        {props.label}
       </Button>
     </div>
   );

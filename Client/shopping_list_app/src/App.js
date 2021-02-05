@@ -2,47 +2,42 @@ import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
 
 //mport logo from './logo.svg';
 //import './App.css';
-import IngredientListComponenet from './IngredientsList/IngredientListComponent';
+import IngredientsComponenet from './IngredientsComponent/IngredientsComponent';
 //import MenuListComponent from './MenuListComponent/MenuListComponent';
 import BuildShoppingListComponent from './BuildShoppingListComponent/BuildShoppingListComponent';
 
-import NavigationComponent from './NavigationComponent/NavigationComponent';
+import MenuComponent from './NavigationComponents/MenuComponent';
+import AppBarComponent from './NavigationComponents/AppBarComponent';
 
 import LoginComponent from './LoginComponent/LoginComponent';
+import { useState } from 'react';
 
 function App() {
+  const [clicked, setClicked] = useState(1);
+
   return (
     <div className="App">
       <Router>
-        <NavigationComponent />
-        <div>
-          <nav>
-            <ul>
-              <li>
-                <Link to="/ingredients">Ingredients</Link>
-              </li>
-              <li>
-                <Link to="/buildlist">Build shoppinglist</Link>
-              </li>
-              <li>
-                <Link to="/user">User</Link>
-              </li>
-            </ul>
-          </nav>
-        </div>
+        <AppBarComponent
+          onClick={() => {
+            if (clicked === 1) {
+              setClicked(2);
+            } else {
+              setClicked(1);
+            }
+          }}
+        />
+        <MenuComponent open={clicked} />
 
         <Switch>
           <Route path="/ingredients">
-            <IngredientListComponenet />
+            <IngredientsComponenet />
           </Route>
           <Route path="/buildlist">
             <BuildShoppingListComponent />
           </Route>
         </Switch>
       </Router>
-      {/* <IngredientListComponenet />
-      <BuildShoppingListComponent />
-      <LoginComponent /> */}
     </div>
   );
 }
