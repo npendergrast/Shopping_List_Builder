@@ -1,10 +1,11 @@
 const { pool } = require('../db/index');
 const jwt = require('jsonwebtoken');
-const { jwtSecret } = require('../keys');
+const session = require('express-session');
+const { secret } = require('../keys');
 
-const secret = process.env.jwtSecret || jwtSecret;
+const tokenSecret = process.env.jwtSecret || secret;
 
-// Login: check is username exists, then check if password matches username
+//Login: check is username exists, then check if password matches username
 async function loginUser(req, res) {
   const { userName, password } = req.body;
   pool
@@ -16,16 +17,24 @@ async function loginUser(req, res) {
     )
     .then((result) => {
       if (result.rows.length < 1) {
-        res.status(201).send('username does not exist');
+        res
+          .status(201)
+          .json({ success: false, message: 'username does not exist!' });
       } else {
         if (result.rows[0].password != password) {
-          res.status(201).send('invalid password');
+          res
+            .status(403)
+            .json({ success: false, message: 'incorrect password!' });
         } else {
-          const token = jwt.sign({ userID: result.rows[0].id }, secret, {
+          const token = jwt.sign({ userID: result.rows[0].id }, tokenSecret, {
             expiresIn: '1h',
           });
-          console.log(token);
-          res.status(201).json({ token: token });
+          res.status(200).json({
+            success: true,
+            message: 'login successful',
+            token: token,
+            userID: result.rows[0].id,
+          });
         }
       }
     })
@@ -36,6 +45,18 @@ async function loginUser(req, res) {
     });
 }
 
+// function loginUser(req, res, next) {
+//   console.log(req.session);
+//   req.session.isLoggedIn = true;
+//   res.session;
+// }
+
 module.exports = {
   loginUser,
 };
+
+// const token = jwt.sign({ userID: result.rows[0].id }, tokenSecret, {
+//   expiresIn: '1h',
+// });
+// console.log(token);
+// res.status(201).json({ token: token });

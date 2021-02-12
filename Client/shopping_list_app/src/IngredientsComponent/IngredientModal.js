@@ -7,7 +7,7 @@ import InputFieldComponent from '../GenericComponents/InputFieldComponent';
 import DropDownComponent from '../GenericComponents/DropDownComponent';
 import SwitchComponent from '../GenericComponents/SwitchComponent';
 import ButtonComponent from '../ButtonComponent/ButtonComponent';
-import { Divider } from '@material-ui/core';
+import { Divider, Typography, Card } from '@material-ui/core';
 
 const useStyles = makeStyles((theme) => ({
   modal: {
@@ -65,7 +65,7 @@ export default function TransitionsModal(props) {
       >
         <Fade in={open}>
           <div className={classes.paper}>
-            <div>{props.title}</div>
+            <Typography align="center">{props.title}</Typography>
             <Divider />
             <InputFieldComponent
               label={'Ingredient'}
@@ -83,7 +83,9 @@ export default function TransitionsModal(props) {
             />
             <ButtonComponent label={'Save'} onClick={props.onClick} />
             <ButtonComponent onClick={props.close} label={'Cancel'} />
-            {props.isEditModal && <ButtonComponent label="Delete" />}
+            {props.isEditModal && (
+              <ButtonComponent label="Delete" onClick={props.delete} />
+            )}
           </div>
         </Fade>
       </Modal>

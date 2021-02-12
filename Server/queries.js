@@ -1,5 +1,11 @@
 const { pool } = require('./db/index');
+const {
+  isIngredientUnique,
+  doesTypeExist,
+} = require('./validation/validation');
+const { failedValidation } = require('./controllers/failedValidationResponse');
 
+// ****UTILITY FUNCTIONS:****
 // Find value in array (either case sensitive or not)
 const findInArray = (targetArray, checkValue, caseSensitive) => {
   if (!caseSensitive) {
@@ -8,8 +14,21 @@ const findInArray = (targetArray, checkValue, caseSensitive) => {
   }
   return targetArray.includes(checkValue);
 };
+// Sort array of objects alphabetically by property
+const sortObjArray = (array, propertyToSortOn) => {
+  return [...array].sort(function (a, b) {
+    const x = a[propertyToSortOn].toLowerCase();
+    const y = b[propertyToSortOn].toLowerCase();
+    if (x < y) {
+      return -1;
+    }
+    if (x > y) {
+      return 1;
+    }
+    return 0;
+  });
+};
 
-//
 // const addUser = (req, res) => {
 //   const { userName, password, first, last } = req.body;
 //   console.log(userName);
@@ -21,52 +40,107 @@ const findInArray = (targetArray, checkValue, caseSensitive) => {
 // };
 
 // Provide an array of ingredient objects
+// async function addIngredient(req, res) {
+//   const newIngredientArr = req.body;
+//   let queryResults = [];
+//   for (const newIngredient of newIngredientArr) {
+//     try {
+//       await pool.query(
+//         `INSERT INTO ingredients(ingredient, id, type_id)
+//         VALUES( $1 ,uuid_generate_v4(), (SELECT id from ingredient_types WHERE type= $2))`,
+//         [newIngredient.ingredient, newIngredient.ingredientType]
+//       );
+//       queryResults.push(newIngredient.ingredient);
+//     } catch (err) {
+//       consolse.log(err);
+//     }
+//   }
+//   res
+//     .status(201)
+//     .send('these ingredients have been added: ' + queryResults.toString());
+// }
+
 async function addIngredient(req, res) {
-  const newIngredientArr = req.body;
-  let queryResults = [];
-  for (const newIngredient of newIngredientArr) {
+  const { ingredient, ingredientType, include } = req.body;
+  const userID = req.userID;
+
+  if (!(await isIngredientUnique(res, ingredient))) {
+    failedValidation(req, res, 'ingredient name already exists');
+  } else if (!(await doesTypeExist(res, ingredientType))) {
+    failedValidation(req, res, 'type does not exist');
+  } else {
     try {
-      await pool.query(
-        `INSERT INTO ingredients(ingredient, id, type_id)
-        VALUES( $1 ,uuid_generate_v4(), (SELECT id from ingredient_types WHERE type= $2))`,
-        [newIngredient.ingredient, newIngredient.ingredientType]
-      );
-      queryResults.push(newIngredient.ingredient);
+      await pool
+        .query(
+          `INSERT INTO ingredients(ingredient, id, type_id, include, user_id)
+        VALUES( $1 ,uuid_generate_v4(), (SELECT id from ingredient_types WHERE type= $2), $3, $4)`,
+          [ingredient, ingredientType, include, userID]
+        )
+        .then(
+          res
+            .status(201)
+            .json({ auth: true, success: true, message: 'ingredient added' })
+        );
     } catch (err) {
-      consolse.log(err);
+      res
+        .status(500)
+        .json({ auth: true, success: false, message: 'something went wrong!' });
+      throw err;
     }
   }
-  res
-    .status(201)
-    .send('these ingredients have been added: ' + queryResults.toString());
 }
 
 // Update an existing ingredient:
 async function editIngredient(req, res) {
-  const { newName, ingredient, newType } = req.body;
-  let ingredientList = await pool.query('SELECT ingredient FROM ingredients');
-  ingredientList = ingredientList.rows.map((element) => element.ingredient);
+  const { ingredient, ingredientType, include, id } = req.body;
+  const userID = req.userID;
+  let allOK = false;
 
-  if (findInArray(ingredientList, newName, false)) {
-    res.send('Ingredient already exists');
-  } else {
+  let oldIngredientName = await pool.query(
+    'SELECT ingredient FROM ingredients where id = $1 and user_id = $2',
+    [id, userID]
+  );
+
+  if (oldIngredientName.rows[0].ingredient === ingredient) allOK = true;
+
+  if (!allOK) {
+    let ingredientList = await pool.query('SELECT ingredient FROM ingredients');
+    ingredientList = ingredientList.rows.map((element) => element.ingredient);
+    if (findInArray(ingredientList, ingredient, false)) {
+      allOK = false;
+      res.json({
+        auth: true,
+        success: false,
+        message: 'ingredient name already exists',
+      });
+    } else allOK = true;
+  }
+
+  if (allOK) {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
       await client.query(
-        'UPDATE ingredients SET type_id = (SELECT id FROM ingredient_types WHERE type= $1) WHERE ingredient= $2',
-        [newType, ingredient]
+        'UPDATE ingredients SET type_id = (SELECT id FROM ingredient_types WHERE type= $1) WHERE id= $2 and user_id = $3',
+        [ingredientType, id, userID]
       );
       await client.query(
-        'UPDATE ingredients SET ingredient = $1 WHERE ingredient= $2',
-        [newName, ingredient]
+        'UPDATE ingredients SET ingredient = $1 WHERE id= $2 and user_id = $3',
+        [ingredient, id, userID]
+      );
+      await client.query(
+        'UPDATE ingredients SET include = $1 WHERE id= $2 and user_id = $3',
+        [include, id, userID]
       );
       await client.query('COMMIT');
-      await res.status(200).send('ingredient updated');
+      await res
+        .status(201)
+        .json({ auth: true, success: true, message: 'ingredient updated' });
     } catch (err) {
-      res.status(500).send(err);
+      res
+        .status(500)
+        .json({ auth: true, success: false, message: 'something went wrong!' });
       await client.query('ROLLBACK');
-      throw err;
     } finally {
       client.release();
     }
@@ -84,7 +158,8 @@ const getIngredients = (req, res) => {
         res.send('Ingredient list could not be found');
         throw err;
       }
-      res.status(200).json(results.rows);
+      const sorted = sortObjArray(results.rows, 'ingredient');
+      res.status(200).json({ auth: true, data: sorted });
     }
   );
 };
@@ -95,33 +170,33 @@ const getIngredientTypes = (req, res) => {
       res.send('Ingredient types list could not be found');
       throw err;
     }
-    const sortedTypes = [...results.rows].sort(function (a, b) {
-      var x = a.type.toLowerCase();
-      var y = b.type.toLowerCase();
-      if (x < y) {
-        return -1;
-      }
-      if (x > y) {
-        return 1;
-      }
-      return 0;
-    });
-
-    res.status(200).send(sortedTypes);
+    const sorted = sortObjArray(results.rows, 'type');
+    res.status(200).json(sorted);
   });
 };
 
 const deleteIngredient = (req, res) => {
-  const { ingredient } = req.body;
+  const { id } = req.body;
   pool.query(
-    `DELETE FROM ingredients WHERE ingredient = $1`,
-    [ingredient],
+    `DELETE FROM ingredients WHERE id = $1 RETURNING *`,
+    [id],
     (err, results) => {
       if (err) {
-        res.status(500).send('Ingredient could not be deleted');
-        throw err;
+        res
+          .status(500)
+          .json({ success: false, message: 'something went wrong!' });
+      } else {
+        if (results.rows.length < 1) {
+          res.status(404).json({
+            success: false,
+            message: 'ingredient to delete was not found!',
+          });
+        } else {
+          res
+            .status(201)
+            .json({ success: true, message: 'ingredient deleted!' });
+        }
       }
-      res.status(201).send(results.rowCount + ' items deleted');
     }
   );
 };

@@ -7,7 +7,13 @@ import IngredientModal from './IngredientModal';
 import AddButtonComponent from '../GenericComponents/AddButtonComponent';
 import AlertComponent from '../GenericComponents/AlertComponent';
 
-const IngredientList = () => {
+import {
+  addIngredient,
+  editIngredient,
+  deleteIngredient,
+} from '../ApiCalls/apiCalls';
+
+const IngredientList = (props) => {
   const [list, setList] = useState([]);
   const [types, setTypes] = useState([]);
   const [filteredList, setFilteredList] = useState([]);
@@ -18,14 +24,22 @@ const IngredientList = () => {
   const [idState, setIdState] = useState();
   const [includeState, setIncludeState] = useState();
   const [ingredientState, setIngredientState] = useState();
-  const [errorState, setErrorState] = useState({});
+  const [alertState, setAlertState] = useState({});
+
+  const getIngredientList = () => {
+    getIngredients(props.token).then((response) => {
+      if (!response.auth) {
+        props.cancelToken();
+      } else {
+        setList(response.data);
+        setFilteredList(response.data);
+      }
+    });
+  };
 
   useEffect(() => {
-    getIngredients().then((items) => {
-      setList(items);
-      setFilteredList(items);
-    });
-    getIngredientTypes().then((items) => {
+    getIngredientList();
+    getIngredientTypes(props.token).then((items) => {
       setTypes(items);
     });
   }, []);
@@ -76,16 +90,120 @@ const IngredientList = () => {
   };
 
   const handleAlertClose = () => {
-    setErrorState({});
+    setAlertState({});
+  };
+
+  const deleteHandler = () => {
+    const deleteObject = {
+      id: idState,
+    };
+    deleteIngredient(deleteObject).then((response) => {
+      if (response.success) {
+        setAlertState({
+          alert: true,
+          type: 'success',
+          message: response.message,
+        });
+        getIngredientList();
+        onCloseHandler();
+      } else {
+        setAlertState({
+          alert: true,
+          type: 'error',
+          message: response.message,
+        });
+      }
+    });
   };
 
   const saveHandler = () => {
-    if (idState !== '') {
-      if (ingredientState.trim() === '') {
-        setErrorState({
-          error: true,
-          message: 'Please enter and ingredient name',
+    // Check if ingredient or type fields are empty
+    if (ingredientState.trim() === '') {
+      setAlertState({
+        alert: true,
+        type: 'error',
+        message: 'Please enter an ingredient name',
+      });
+    } else {
+      if (typeState.trim() === '') {
+        setAlertState({
+          alert: true,
+          type: 'error',
+          message: 'Please enter a type',
         });
+      } else {
+        // If there is an id then you are editing existing ingredient
+        if (idState !== '') {
+          // Check if any fields have been changed and give alert if not
+          if (
+            modalData.ingredient === ingredientState &&
+            modalData.type === typeState &&
+            modalData.include === includeState
+          ) {
+            setAlertState({
+              alert: true,
+              type: 'error',
+              message: 'No fields have changed',
+            });
+          } else {
+            // Send http edit request
+            const saveObject = {
+              ingredient: ingredientState,
+              ingredientType: typeState,
+              include: includeState,
+              id: idState,
+            };
+            editIngredient(saveObject, props.token).then((response) => {
+              if (!response.auth) {
+                props.cancelToken();
+              } else {
+                if (response.success) {
+                  setAlertState({
+                    alert: true,
+                    type: 'success',
+                    message: response.message,
+                  });
+                  getIngredientList();
+                  onCloseHandler();
+                } else {
+                  setAlertState({
+                    alert: true,
+                    type: 'error',
+                    message: response.message,
+                  });
+                }
+              }
+            });
+          }
+        } else {
+          // No id found so you are adding a new ingredient
+          const saveObject = {
+            ingredient: ingredientState,
+            ingredientType: typeState,
+            include: includeState,
+          };
+          addIngredient(saveObject, props.token).then((response) => {
+            if (!response.auth) {
+              props.cancelToken();
+            } else {
+              if (response.success) {
+                setAlertState({
+                  alert: true,
+                  type: 'success',
+                  message: response.message,
+                });
+                getIngredientList();
+                onCloseHandler();
+              } else {
+                setAlertState({
+                  alert: true,
+                  type: 'error',
+                  message: response.message,
+                });
+              }
+            }
+          });
+        }
       }
     }
   };
@@ -113,6 +231,7 @@ const IngredientList = () => {
           switchStateHandler={switchStateHandler}
           onClick={saveHandler}
           isEditModal={true}
+          delete={deleteHandler}
         />
       )}
       {addModalOpen && (
@@ -131,11 +250,14 @@ const IngredientList = () => {
           onClick={saveHandler}
         />
       )}
-      <AlertComponent
-        open={errorState.error}
-        close={handleAlertClose}
-        message={errorState.message}
-      />
+      {alertState.alert && (
+        <AlertComponent
+          open={alertState.alert}
+          close={handleAlertClose}
+          message={alertState.message}
+          type={alertState.type}
+        />
+      )}
     </Box>
   );
 };

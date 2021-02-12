@@ -7,12 +7,10 @@ import Divider from '@material-ui/core/Divider';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-
-import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
-import './MenuComponent.scss';
-
-import AppBarComponent from './AppBarComponent';
 import { Button } from '@material-ui/core';
+
+import { BrowserRouter as Link } from 'react-router-dom';
+import './MenuComponent.scss';
 
 const useStyles = makeStyles({
   list: {
@@ -38,7 +36,6 @@ export default function TemporaryDrawer(props) {
     }
 
     setState({ ...state, [anchor]: open });
-    console.log(state);
   };
 
   useEffect(() => {
@@ -86,7 +83,6 @@ export default function TemporaryDrawer(props) {
 
   return (
     <div>
-      {/* <AppBarComponent onClick={toggleDrawer('left', true)} /> */}
       <Drawer
         anchor={'left'}
         open={state['left']}

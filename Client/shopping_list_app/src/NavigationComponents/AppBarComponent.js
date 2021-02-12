@@ -38,7 +38,9 @@ export default function ButtonAppBar(props) {
           <Typography variant="h6" className={classes.title}>
             Shopping List
           </Typography>
-          <Button color="inherit">Login</Button>
+          <Button onClick={props.logoutClick} color="inherit">
+            Logout
+          </Button>
         </Toolbar>
       </AppBar>
     </div>

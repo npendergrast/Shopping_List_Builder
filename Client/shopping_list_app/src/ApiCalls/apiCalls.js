@@ -1,13 +1,21 @@
-export const getIngredients = () => {
-  return fetch('http://localhost:5000/ingredients/').then((data) =>
-    data.json()
-  );
+export const getIngredients = (token) => {
+  return fetch('http://localhost:5000/ingredients/', {
+    headers: {
+      Authorization: 'Bearer ' + token,
+    },
+  }).then((data) => data.json());
 };
 
-export const getIngredientTypes = () => {
-  return fetch('http://localhost:5000/ingredienttypes').then((data) =>
-    data.json()
-  );
+export const getIngredientTypes = (token) => {
+  return fetch('http://localhost:5000/ingredienttypes', {
+    headers: {
+      Authorization: 'Bearer ' + token,
+    },
+  })
+    .then((data) => data.json())
+    .catch(() => {
+      console.log('could not connect');
+    });
 };
 
 export const getRecipes = () => {
@@ -24,6 +32,54 @@ export const buildShoppingList = (listIDs) => {
   }).then((data) => data.json());
 };
 
+export const addIngredient = (data, token) => {
+  return fetch('http://localhost:5000/ingredients', {
+    method: 'POST',
+    body: JSON.stringify(data),
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + token,
+    },
+  })
+    .then((data) => data.json())
+    .catch(() => {
+      return { success: false, message: 'could not connect to server' };
+    });
+};
+
+export const editIngredient = (data, token) => {
+  return fetch('http://localhost:5000/ingredients', {
+    method: 'PUT',
+    body: JSON.stringify(data),
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + token,
+    },
+  })
+    .then((data) => data.json())
+    .catch(() => {
+      return {
+        auth: true,
+        success: false,
+        message: 'could not connect to server',
+      };
+    });
+};
+
+export const deleteIngredient = (data) => {
+  return fetch('http://localhost:5000/ingredients', {
+    method: 'DELETE',
+    body: JSON.stringify(data),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+    .then((data) => data.json())
+    .catch(() => {
+      return { success: false, message: 'could not connect to server' };
+    });
+};
+
 export const userLogin = (credentials) => {
   return fetch('http://localhost:5000/login', {
     method: 'POST',
@@ -31,5 +87,9 @@ export const userLogin = (credentials) => {
     headers: {
       'Content-Type': 'application/json',
     },
-  }).then((data) => data.json());
+  })
+    .then((data) => data.json())
+    .catch(() => {
+      return { success: false, message: 'could not connect to server' };
+    });
 };

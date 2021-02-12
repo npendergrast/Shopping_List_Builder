@@ -14,6 +14,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 
 import { userLogin } from '../ApiCalls/apiCalls';
+import AlertComponent from '../GenericComponents/AlertComponent';
 
 function Copyright() {
   return (
@@ -48,11 +49,12 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function SignIn() {
+export default function SignIn(props) {
   const classes = useStyles();
   const [buttonDisabled, setButtonDisabled] = useState(true);
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
+  const [alertState, setAlertState] = useState(false);
 
   useEffect(() => {
     if (userName !== '' && password !== '') {
@@ -62,12 +64,27 @@ export default function SignIn() {
     }
   }, [userName, password]);
 
-  const onClickHandler = (e) => {
-    e.preventDefault();
+  const onClickHandler = (event) => {
+    event.preventDefault();
     const credentials = { userName: userName, password: password };
-    userLogin(credentials).then((result) => {
-      console.log(result);
+    userLogin(credentials).then((response) => {
+      if (response.success) {
+        const { token, userID } = response;
+        // localStorage.setItem('token', token);
+        // localStorage.setItem('userID', userID);
+        props.login(token, userID);
+      } else {
+        setAlertState({
+          alert: true,
+          type: 'error',
+          message: response.message,
+        });
+      }
     });
+  };
+
+  const handleAlertClose = () => {
+    setAlertState({ alert: false, type: 'error' });
   };
 
   return (
@@ -135,6 +152,12 @@ export default function SignIn() {
       {/* <Box mt={8}>
         <Copyright />
       </Box> */}
+      <AlertComponent
+        open={alertState.alert}
+        close={handleAlertClose}
+        message={alertState.message}
+        type={alertState.type}
+      />
     </Container>
   );
 }
