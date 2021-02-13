@@ -12,12 +12,12 @@ import CheckRoundedIcon from '@material-ui/icons/CheckRounded';
 import ClearRoundedIcon from '@material-ui/icons/ClearRounded';
 
 const columns = [
-  { id: 'ingredient', label: 'Ingredient', minWidth: 140 },
-  { id: 'type', label: 'Type', minWidth: 140 },
+  { id: 'ingredient', label: 'Ingredient', minWidth: 120 },
+  { id: 'type', label: 'Type', minWidth: 80 },
   {
     id: 'include',
-    label: 'Include in shopping list',
-    minWidth: 60,
+    label: 'Include',
+    minWidth: 30,
     maxWidth: 60,
     align: 'center',
     format: (value) => value.toString(),
@@ -120,5 +120,3 @@ export default function StickyHeadTable(props) {
     </Paper>
   );
 }
-
-// column.format(value)

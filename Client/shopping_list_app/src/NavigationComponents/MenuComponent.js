@@ -8,6 +8,7 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import { Button } from '@material-ui/core';
+import LocalDiningIcon from '@material-ui/icons/LocalDining';
 
 import { BrowserRouter as Link } from 'react-router-dom';
 import './MenuComponent.scss';
@@ -70,14 +71,6 @@ export default function TemporaryDrawer(props) {
         </ListItem>
       </Link>
       <Divider />
-      <List>
-        {['All mail', 'Trash', 'Spam'].map((text, index) => (
-          <ListItem button key={text}>
-            <ListItemIcon></ListItemIcon>
-            <ListItemText primary={text} />
-          </ListItem>
-        ))}
-      </List>
     </div>
   );
 
@@ -88,7 +81,9 @@ export default function TemporaryDrawer(props) {
         open={state['left']}
         onClose={toggleDrawer('left', false)}
       >
-        <Button onClick={toggleDrawer('left', false)}>Close</Button>
+        <Button onClick={toggleDrawer('left', false)}>
+          <LocalDiningIcon fontSize="large" />
+        </Button>
         {list('left')}
       </Drawer>
     </div>

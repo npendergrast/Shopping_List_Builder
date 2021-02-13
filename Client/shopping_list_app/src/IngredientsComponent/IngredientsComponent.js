@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { getIngredients, getIngredientTypes } from '../ApiCalls/apiCalls';
 import Box from '@material-ui/core/Box';
+
+// Import app components
 import IngredientListComponent from './IngredientListComponent';
 import InputFieldComponent from '../GenericComponents/InputFieldComponent';
 import IngredientModal from './IngredientModal';
 import AddButtonComponent from '../GenericComponents/AddButtonComponent';
 import AlertComponent from '../GenericComponents/AlertComponent';
+import SnackbarAlertComponent from '../GenericComponents/SnackbarAlertComponent';
+import SearchFieldComponent from '../GenericComponents/SearchFieldComponent';
 
 import {
   addIngredient,
@@ -45,8 +49,11 @@ const IngredientList = (props) => {
   }, []);
 
   const onSearchHandler = (e) => {
-    const filteredArray = list.filter((row) =>
-      row.ingredient.toLowerCase().match(e.target.value.toLowerCase())
+    const filteredArray = list.filter(
+      (item) =>
+        item.ingredient
+          .toLowerCase()
+          .search(e.target.value.toLowerCase().trim()) !== -1
     );
     setFilteredList(filteredArray);
   };
@@ -209,9 +216,17 @@ const IngredientList = (props) => {
   };
 
   return (
-    <Box>
-      <InputFieldComponent onChange={onSearchHandler} label={'Search'} />
-      <AddButtonComponent onClick={onClickHandler} />
+    <Box m="20px">
+      <Box
+        display="flex"
+        justifyContent="flex-start"
+        mt="15px"
+        mb="15px"
+        ml="10px"
+      >
+        <SearchFieldComponent onChange={onSearchHandler} label={'Search'} />
+        <AddButtonComponent onClick={onClickHandler} />
+      </Box>
       <IngredientListComponent
         ingredients={filteredList}
         rowClick={onRowClickHandler}
@@ -251,7 +266,7 @@ const IngredientList = (props) => {
         />
       )}
       {alertState.alert && (
-        <AlertComponent
+        <SnackbarAlertComponent
           open={alertState.alert}
           close={handleAlertClose}
           message={alertState.message}

@@ -20,6 +20,7 @@ function App() {
   const [clicked, setClicked] = useState(1);
   const [authenticated, setAuthenticated] = useState(false);
   const [accessToken, setAccessToken] = useState();
+  const [storeToken, setStoreToken] = useState(true);
 
   useEffect(() => {
     const tokenInStorage = localStorage.getItem('token');
@@ -30,8 +31,10 @@ function App() {
   }, []);
 
   const loginHandler = (token, userID) => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('userID', userID);
+    if (storeToken) {
+      localStorage.setItem('token', token);
+      localStorage.setItem('userID', userID);
+    }
     setAccessToken(token);
     setAuthenticated(true);
   };
@@ -41,6 +44,10 @@ function App() {
     localStorage.removeItem('userID');
     setAccessToken({});
     setAuthenticated(false);
+  };
+
+  const checkHandler = (event) => {
+    setStoreToken(event.target.checked);
   };
 
   return (
@@ -77,7 +84,11 @@ function App() {
           <div>
             <Redirect from="*" to="/login" />
             <Route path="/login">
-              <LoginComponent login={loginHandler} />
+              <LoginComponent
+                login={loginHandler}
+                checked={storeToken}
+                checkHandler={checkHandler}
+              />
             </Route>
           </div>
         )}
