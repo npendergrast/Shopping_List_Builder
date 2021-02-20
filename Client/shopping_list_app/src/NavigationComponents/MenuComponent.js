@@ -10,7 +10,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import { Button } from '@material-ui/core';
 import LocalDiningIcon from '@material-ui/icons/LocalDining';
 
-import { BrowserRouter as Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import './MenuComponent.scss';
 
 const useStyles = makeStyles({

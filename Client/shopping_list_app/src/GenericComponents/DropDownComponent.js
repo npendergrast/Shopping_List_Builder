@@ -8,10 +8,13 @@ import Select from '@material-ui/core/Select';
 const useStyles = makeStyles((theme) => ({
   formControl: {
     margin: theme.spacing(1),
-    minWidth: 120,
+    minWidth: 220,
   },
   selectEmpty: {
     marginTop: theme.spacing(2),
+  },
+  label: {
+    textAlign: 'left',
   },
 }));
 
@@ -30,6 +33,7 @@ export default function SimpleSelect(props) {
       <FormControl className={classes.formControl}>
         <InputLabel id="demo-simple-select-label">Type</InputLabel>
         <Select
+          className={classes.label}
           labelId="demo-simple-select-label"
           id="demo-simple-select"
           value={type}

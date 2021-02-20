@@ -5,7 +5,7 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
 
 export default function FormControlLabelPosition(props) {
-  const [switchOn, setSwitchOn] = React.useState(true);
+  const [switchOn, setSwitchOn] = React.useState(props.active);
 
   useEffect(() => {
     setSwitchOn(props.active);

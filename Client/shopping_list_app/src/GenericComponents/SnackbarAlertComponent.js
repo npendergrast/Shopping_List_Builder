@@ -1,9 +1,7 @@
-import React, { useEffect } from 'react';
-import Button from '@material-ui/core/Button';
+import React from 'react';
 import Snackbar from '@material-ui/core/Snackbar';
 import MuiAlert from '@material-ui/lab/Alert';
 import { makeStyles } from '@material-ui/core/styles';
-import Slide from '@material-ui/core/Slide';
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -23,10 +21,18 @@ const useStyles = makeStyles((theme) => ({
 
 export default function CustomizedSnackbars(props) {
   const classes = useStyles();
+  let timeOut;
+
+  if (props.type === 'success') {
+    timeOut = 2500;
+  } else {
+    timeOut = 5000;
+  }
 
   return (
     <div className={classes.root}>
       <Snackbar
+        autoHideDuration={timeOut}
         className={classes.snack}
         open={props.open}
         TransitionProps={{

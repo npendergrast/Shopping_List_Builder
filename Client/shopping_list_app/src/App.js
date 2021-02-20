@@ -4,7 +4,6 @@ import {
   Switch,
   Route,
   Redirect,
-  Link,
 } from 'react-router-dom';
 
 //import './App.css';
@@ -20,20 +19,24 @@ function App() {
   const [clicked, setClicked] = useState(1);
   const [authenticated, setAuthenticated] = useState(false);
   const [accessToken, setAccessToken] = useState();
+  const [expiryDate, setExpiryDate] = useState();
   const [storeToken, setStoreToken] = useState(true);
 
   useEffect(() => {
     const tokenInStorage = localStorage.getItem('token');
-    if (tokenInStorage) {
+    const expiryDateInStorage = localStorage.getItem('expires');
+    if (tokenInStorage && expiryDateInStorage) {
       setAuthenticated(true);
       setAccessToken(tokenInStorage);
+      setExpiryDate(expiryDateInStorage);
     }
   }, []);
 
-  const loginHandler = (token, userID) => {
+  const loginHandler = (token, userID, expires) => {
     if (storeToken) {
       localStorage.setItem('token', token);
       localStorage.setItem('userID', userID);
+      localStorage.setItem('expires', expires);
     }
     setAccessToken(token);
     setAuthenticated(true);
@@ -42,6 +45,7 @@ function App() {
   const logoutHandler = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('userID');
+    localStorage.removeItem('expires');
     setAccessToken({});
     setAuthenticated(false);
   };
@@ -55,7 +59,6 @@ function App() {
       <Router>
         {authenticated === true ? (
           <div>
-            <Redirect from="/login" to="/ingredients" />
             <AppBarComponent
               logoutClick={logoutHandler}
               onClick={() => {
@@ -69,9 +72,11 @@ function App() {
             <MenuComponent open={clicked} />
 
             <Switch>
+              <Redirect from="/login" to="/ingredients" />
               <Route path="/ingredients">
                 <IngredientsComponenet
                   token={accessToken}
+                  expires={expiryDate}
                   cancelToken={logoutHandler}
                 />
               </Route>

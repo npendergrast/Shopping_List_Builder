@@ -4,7 +4,6 @@ const { secret } = require('../keys');
 const tokenSecret = process.env.jwtSecret || secret;
 
 module.exports = (req, res, next) => {
-  console.log('here!');
   const authHeader = req.get('Authorization');
   if (!authHeader) {
     const error = new Error('Not authenticated');
@@ -28,6 +27,5 @@ module.exports = (req, res, next) => {
     throw error;
   }
   req.userID = decodedToken.userID;
-  console.log(req.userID);
   next();
 };

@@ -53,8 +53,9 @@ export default function SignIn(props) {
     const credentials = { userName: userName, password: password };
     userLogin(credentials).then((response) => {
       if (response.success) {
-        const { token, userID } = response;
-        props.login(token, userID);
+        const { token, userID, expires } = response;
+        const expiryDate = new Date(expires);
+        props.login(token, userID, expiryDate);
       } else {
         setAlertState({
           alert: true,

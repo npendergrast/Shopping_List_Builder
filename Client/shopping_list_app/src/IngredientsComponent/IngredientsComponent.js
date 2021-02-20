@@ -3,7 +3,7 @@ import { getIngredients, getIngredientTypes } from '../ApiCalls/apiCalls';
 import Box from '@material-ui/core/Box';
 
 // Import app components
-import IngredientListComponent from './IngredientListComponent';
+import IngredientListComponent from './IngredientListComponent2';
 import InputFieldComponent from '../GenericComponents/InputFieldComponent';
 import IngredientModal from './IngredientModal';
 import AddButtonComponent from '../GenericComponents/AddButtonComponent';
@@ -17,6 +17,8 @@ import {
   deleteIngredient,
 } from '../ApiCalls/apiCalls';
 
+import { tokenHasExpired } from '../UtilityFunctions/utility';
+
 const IngredientList = (props) => {
   const [list, setList] = useState([]);
   const [types, setTypes] = useState([]);
@@ -24,21 +26,25 @@ const IngredientList = (props) => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [modalData, setModalData] = useState({});
-  const [typeState, setTypeState] = useState();
-  const [idState, setIdState] = useState();
-  const [includeState, setIncludeState] = useState();
-  const [ingredientState, setIngredientState] = useState();
+  const [typeState, setTypeState] = useState({});
+  const [idState, setIdState] = useState({});
+  const [includeState, setIncludeState] = useState({});
+  const [ingredientState, setIngredientState] = useState({});
   const [alertState, setAlertState] = useState({});
 
   const getIngredientList = () => {
-    getIngredients(props.token).then((response) => {
-      if (!response.auth) {
-        props.cancelToken();
-      } else {
-        setList(response.data);
-        setFilteredList(response.data);
-      }
-    });
+    if (tokenHasExpired(props.expires)) {
+      props.cancelToken();
+    } else {
+      getIngredients(props.token).then((response) => {
+        if (!response.auth) {
+          props.cancelToken();
+        } else {
+          setList(response.data);
+          setFilteredList(response.data);
+        }
+      });
+    }
   };
 
   useEffect(() => {

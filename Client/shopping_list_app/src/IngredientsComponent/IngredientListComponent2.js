@@ -9,6 +9,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import CheckRoundedIcon from '@material-ui/icons/CheckRounded';
 import ClearRoundedIcon from '@material-ui/icons/ClearRounded';
+import TableSortLabel from '@material-ui/core/TableSortLabel';
 
 const columns = [
   { id: 'ingredient', label: 'Ingredient', minWidth: 120 },
@@ -34,26 +35,68 @@ const useStyles = makeStyles({
 });
 
 export default function StickyHeadTable(props) {
-  const rows = props.ingredients;
   const classes = useStyles();
+  const [rows, setRows] = useState([]);
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(20);
+  const [sortObject, setSortObject] = useState({
+    order: 'desc',
+    column: 'ingredient',
+  });
+  const [rowsPerPage, setRowsPerPage] = useState();
 
   useEffect(() => {
     setRowsPerPage(props.ingredients.length);
+    setRows(props.ingredients);
   }, [props.ingredients]);
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
+  const sortObjArray = (array, propertyToSortOn, desc, isString) => {
+    return [...array].sort(function (a, b) {
+      let x;
+      let y;
+      if (isString) {
+        x = a[propertyToSortOn].toLowerCase();
+        y = b[propertyToSortOn].toLowerCase();
+      } else {
+        x = a[propertyToSortOn];
+        y = b[propertyToSortOn];
+      }
 
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(+event.target.value);
-    setPage(0);
+      if (desc) {
+        if (x < y) {
+          return -1;
+        }
+        if (x > y) {
+          return 1;
+        }
+        return 0;
+      } else {
+        if (x > y) {
+          return -1;
+        }
+        if (x < y) {
+          return 1;
+        }
+        return 0;
+      }
+    });
   };
 
   const onClickHandler = (row) => {
     props.rowClick(row);
+  };
+
+  const sortColumns = (column) => {
+    let isString = true;
+    if (column === 'include') isString = false;
+    if (sortObject.order === 'asc') {
+      const sortedArray = sortObjArray(rows, column, true, isString);
+      setRows(sortedArray);
+      setSortObject({ order: 'desc', column: column });
+    } else {
+      const sortedArray = sortObjArray(rows, column, false, isString);
+      setRows(sortedArray);
+      setSortObject({ order: 'asc', column });
+    }
   };
 
   return (
@@ -68,7 +111,13 @@ export default function StickyHeadTable(props) {
                   align={column.align}
                   style={{ minWidth: column.minWidth }}
                 >
-                  {column.label}
+                  <TableSortLabel
+                    active={column.id === sortObject.column ? true : false}
+                    direction={sortObject.order}
+                    onClick={() => sortColumns(column.id)}
+                  >
+                    {column.label}
+                  </TableSortLabel>
                 </TableCell>
               ))}
             </TableRow>
@@ -107,15 +156,6 @@ export default function StickyHeadTable(props) {
           </TableBody>
         </Table>
       </TableContainer>
-      {/* <TablePagination
-        rowsPerPageOptions={[10, 25, 100]}
-        component="div"
-        count={rows.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onChangePage={handleChangePage}
-        onChangeRowsPerPage={handleChangeRowsPerPage}
-      /> */}
     </Paper>
   );
 }

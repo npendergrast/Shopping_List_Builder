@@ -29,11 +29,14 @@ async function loginUser(req, res) {
           const token = jwt.sign({ userID: result.rows[0].id }, tokenSecret, {
             expiresIn: '1h',
           });
+          const expires = Date.now() + 60 * 60 * 1000;
+          console.log(expires);
           res.status(200).json({
             success: true,
             message: 'login successful',
             token: token,
             userID: result.rows[0].id,
+            expires: expires,
           });
         }
       }
